@@ -1,0 +1,15 @@
+<template>
+    <lightning-button label="Increase speed" onclick={increaseSpeed}></lightning-button>
+    <lightning-button label="Decrease speed" onclick={decreaseSpeed}></lightning-button>
+    {speed}
+    <div class="container">
+        <div class="wheel">
+            <template for:each={faces} for:item="face">
+                <div class="face" key={face.index}>{face.label}</div>
+            </template>
+            <!--<div class="center">c</div>-->
+        </div>
+    </div>
+    
+    
+</template>
