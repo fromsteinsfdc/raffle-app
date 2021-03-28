@@ -1,0 +1,27 @@
+<template>
+
+    <!-- Load audio files (invisible) -->
+    <template for:each={soundStaticResources} for:item="sound" for:index="index">
+        <audio src={sound.src} data-index={index} key={sound.name} data-name={sound.name}></audio>
+    </template>
+
+    <!-- Buttons & Options -->
+    <div class="slds-grid slds-grid_align-end slds-grid_vertical-align-end">
+        <div class="slds-col">
+            <lightning-combobox label="Select Sound Effect" options={soundEffectOptions} value={currentSoundEffect}
+            onchange={handleSoundEffectChange} class="slds-p-around_none slds-m-around_none"></lightning-combobox>
+        </div>
+        <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-4 slds-large-size_1-of-6 slds-p-horizontal_small">
+            <lightning-button label="Start/stop spin" onclick={handleSpinClick}></lightning-button>            
+        </div>
+    </div>
+
+    <!-- Names -->
+    <template for:each={nameSlots} for:item="name">
+        <div key={name} class="nameSlot" data-index={name.index}>
+            <span class="nameText slds-align_absolute-center slds-p-around_xx-small">
+                {name.label}
+            </span>
+        </div>
+    </template>
+</template>

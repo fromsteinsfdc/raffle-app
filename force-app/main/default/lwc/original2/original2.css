@@ -1,0 +1,44 @@
+[data-index="0"], [data-index="10"] {
+    font-size: 0.6vw;
+    opacity: 0.45;
+}
+
+[data-index="1"], [data-index="9"] {
+    font-size: 1vw;
+    opacity: 0.55;
+}
+
+[data-index="2"], [data-index="8"] {
+    font-size: 1.5vw;
+    opacity: 0.65;
+}
+
+[data-index="3"], [data-index="7"] {
+    font-size: 2.25vw;
+    opacity: 0.75;
+}
+
+[data-index="4"], [data-index="6"] {
+    font-size: 3vw;
+    opacity: 0.85;
+}
+
+[data-index="5"] {
+    font-size: 6vw;
+    font-weight: bold;
+    opacity: 1;
+    border-top: 3px solid black;
+    border-bottom: 3px solid black;
+    color: white;
+    background-color: dodgerblue;
+}
+
+.flash {
+    background-color:goldenrod;
+    color: black;
+}
+
+lightning-combobox {
+    max-width: 20vw;
+    display: inline;
+}
