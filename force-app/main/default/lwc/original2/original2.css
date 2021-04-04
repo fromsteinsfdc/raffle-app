@@ -1,3 +1,7 @@
+body, body * {
+    overflow: hidden;
+}
+
 [data-index="0"], [data-index="10"] {
     font-size: 0.6vw;
     opacity: 0.45;
@@ -38,7 +42,39 @@
     color: black;
 }
 
+.smashButton {
+    position: relative;
+    width: 15vw;
+    height: 10vh;
+    background-color: lightcyan;
+    border: 1px solid black;
+    border-radius: 5%;
+}
+
 lightning-combobox {
     max-width: 20vw;
     display: inline;
+}
+
+.countdown {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translateX(-50%) translateY(-50%) ;
+    font-size: 60vw;
+    color:red;
+    -webkit-text-stroke: 10px black;
+    overflow: hidden;
+    /*opacity: 1;
+    transition: opacity, font-size;*/
+}
+
+.test2 {
+    color: green;
+}
+
+.fade{
+    transition-property: opacity, font-size;
+    opacity: 0;
+    font-size: 20vw;
 }

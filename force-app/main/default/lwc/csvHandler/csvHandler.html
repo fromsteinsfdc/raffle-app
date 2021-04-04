@@ -1,0 +1,49 @@
+<template>
+    <template if:true={isLoading}>
+        <lightning-spinner alternative-text="Loading"></lightning-spinner>
+    </template>
+
+    <lightning-card title="Enter Raffle Name">
+        <lightning-button label="Insert Raffle Participants" slot="actions" variant="brand" onclick={handleSubmit} disabled={submitIsDisabled}></lightning-button>
+        <lightning-input label="Raffle Name" class="raffleName req" required></lightning-input>
+        <lightning-card title={title} ondragover={handleDragOver} ondrop={handleDrop} class="slds-grid">
+            <template if:false={resultsReceived}>
+                <input type="file" accept=".csv" class="slds-assistive-text" onchange={handleFileUploadChange} />
+                <div class="uploadDiv slds-p-horizontal_medium" onclick={handleFileUploadClick}>
+                    <lightning-icon icon-name="utility:upload" size="small" class="slds-p-right_x-small">
+                    </lightning-icon>
+                    <span>{dragHereMessage}</span>
+                </div>
+            </template>
+    
+            <template if:true={resultsReceived}>
+    
+                <div class="slds-media slds-media_center slds-p-left_medium">
+                    <div class="slds-media__figure">
+                        <lightning-icon slot="media" icon-name="doctype:csv"></lightning-icon>
+                    </div>
+                    <div class="slds-media__body">
+                        {file.name} <lightning-button-icon icon-name="utility:close" size="small" variant="bare"
+                            class="xButton" onclick={clearFile}></lightning-button-icon>
+                    </div>
+                </div>
+    
+    
+                <div class="slds-grid slds-wrap slds-p-around_small">
+                    <div class="slds-col slds-size_1-of-1 slds-text-heading_small slds-p-bottom_small">Map the columns from the CSV to the corresponding fields</div>
+                    <div class="slds-col slds-size_1-of-2 slds-text-title_bold">Name</div>
+                    <div class="slds-col slds-size_1-of-2 slds-text-title_bold">Number of Tickets</div>
+                    <lightning-combobox label="Name" options={columns} class="slds-col slds-size_1-of-2 nameColumn req" required>
+                    </lightning-combobox>
+                    <lightning-combobox label="Number of Tickets" options={columns} class="slds-col slds-size_1-of-2 numTicketsColumn req"
+                        required></lightning-combobox>
+                </div>
+    
+                <lightning-datatable columns={columns} data={csvData} key-field="id" hide-checkbox-column
+                    class="slds-p-around_x-small"></lightning-datatable>
+            </template>
+        </lightning-card>
+    </lightning-card>
+
+
+</template>

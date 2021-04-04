@@ -1,0 +1,11 @@
+.slds-media .xButton {
+    display: none;
+}
+
+.slds-media:hover .xButton {
+    display: inline;
+}
+
+lightning-datatable {
+    max-height: 300px;
+}

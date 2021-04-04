@@ -29,26 +29,32 @@ export default class Original2 extends LightningElement {
         { name: 'boop', src: boop2 },
         { name: 'snap', src: snap2 },
     ];
-    boopIndex = 0;
+    boopIndex = 0;  // used to manage the alternating of beep and boop sounds in the beepboop sound effect
 
     soundEffects = [
         { label: 'Beep-Boop', name: 'beepboop' },
         { label: 'Just Beeps', name: 'beepbeep' },
-        { label: 'Just Boops', name: 'boopboop' },
-        { label: 'Tones', name: 'tones' },
+        //{ label: 'Just Boops', name: 'boopboop' },
+        { label: 'Tones (random)', name: 'tones' },
         { label: 'Snap', name: 'snap' },
+        { label: 'No sound', name: 'nosound' }
     ];
     currentSoundEffect;
+    
+    countdownSpeed = 750;
+    countdownFrom = 3;
 
     doSpin = false;
+    numRotations = 0;
 
-    tones = [/*131, 147, 165, 175, 196, */220, 247, 262, 294, 330, 349, 392, 440, 494, 523, 587, 659, 698];//, 784, 880, 988];
+    tones = [131, 147, 165, 175, 196, 220, 247, 262, 294, 330, 349, 392, 440, 494, 523, 587, 659, 698];//, 784, 880, 988];
 
     @track speeds = [
-        [30, 200],
-        [40, 200],
-        [50, 200],
-        [60, 200],
+        [20, 500],
+        [30, 500],
+        [40, 500],
+        [50, 500],
+        [60, 500],
         [75, 250],
         [90, 250],
         [100, 300],
@@ -93,12 +99,15 @@ export default class Original2 extends LightningElement {
         this.audioContext = new AudioContext();
 
         // Give our speeds some labels
+        let totalDuration = 0;
         this.speeds = this.speeds.map(pair => {
+            totalDuration += pair[1];
             return {
                 rate: pair[0],
-                duration: pair[1]
+                duration: pair[1]                
             }
-        })
+        });
+        console.log('totalDuration = '+ totalDuration/1000);
 
         // Generate randomized sequence of names from input
         this.names = this.randomizeNames(this.defaultNames.split(','));
@@ -115,16 +124,53 @@ export default class Original2 extends LightningElement {
             this.currentSoundEffect = this.soundEffects[0].name;
     }
 
+    renderedCallback() {
+        if (this.rendered) return;
+        this.rendered = true;
+
+        for (let soundFile of this.soundFiles) {
+            //console.log(soundFile.dataset.name + ' duration = ' + soundFile.duration);
+        }
+    }
+
+    countdown(startNum, currentNum = 0) {
+        let countdownDiv = this.template.querySelector('.countdown');
+        if (!countdownDiv) {
+            console.log('error: div with class countdown not found');
+            return;
+        }
+
+        if (currentNum < startNum) {
+            countdownDiv.classList.remove('slds-hide');
+            countdownDiv.innerText = (startNum - currentNum);
+            countdownDiv.animate([
+                { // from
+                    opacity: 1,
+                    fontSize: '50vw'
+                },
+                { // to
+                    opacity: .5,
+                    fontSize: 0
+                }
+            ], this.countdownSpeed);
+            setTimeout(() => this.countdown(startNum, currentNum + 1), this.countdownSpeed);
+        } else {
+            countdownDiv.classList.add('slds-hide');
+            this.doSpin = true;
+            this.startSpin();
+            console.log('countdown finished');
+        }
+    }
+
     /* EVENT HANDLERS */
     handleSoundEffectChange(event) {
         this.currentSoundEffect = event.detail.value;
-        console.log('new sound effect = ' + this.currentSoundEffect);
     }
 
     handleSpinClick() {
         this.doSpin = !this.doSpin;
         if (this.doSpin) {
-            this.startSpin();
+            this.countdown(this.countdownFrom);
         }
     }
 
@@ -132,7 +178,7 @@ export default class Original2 extends LightningElement {
     startSpin() {
         requestAnimationFrame(timestamp => {
             this.advanceNames(timestamp);
-        })
+        });
     }
 
     advanceNames(timestamp, prevTimestamp, currentSpeedStart) {
@@ -146,8 +192,11 @@ export default class Original2 extends LightningElement {
             this.playSound(this.speeds[this.speedIndex].rate);
 
             this.nameIndex++;
+            console.log(this.nameIndex);
             if (this.nameIndex >= this.names.length) {
                 this.nameIndex = 0;
+                this.numRotations++;
+                console.log('numRoations = '+ this.numRotations);
             }
 
             for (let i = this.numSlots - 1; i > 0; i--) {
@@ -167,19 +216,19 @@ export default class Original2 extends LightningElement {
                 requestAnimationFrame(timestamp => {
                     this.advanceNames(timestamp, prevTimestamp, currentSpeedStart);
                 })
-            } else this.endWheel();
+            } else this.endWheel(true);
         } else this.endWheel();
     }
 
     // reset variables, handle any post-selection logic
-    endWheel() {
+    endWheel(doFlash) {
         this.doSpin = false;
         this.speedIndex = 0;
-        this.flashLights();
+        if (doFlash)
+            this.flashLights();
     }
 
     flashLights() {
-        console.log('in flashLights');
         let flash = true;
         let flashInterval = 250;
         let maxFlashes = 10;
@@ -206,12 +255,12 @@ export default class Original2 extends LightningElement {
         } else if (this.currentSoundEffect == 'tones') {
             this.playTone(length);
         } else if (this.currentSoundEffect == 'snap') {
-            this.playSoundFile('snap', 1);
+            this.playSoundFile('snap', 1.5);
         } else if (this.currentSoundEffect == 'beepbeep') {
             this.playSoundFile('beep');
-        } else if (this.currentSoundEffect == 'boopboop') {
-            this.playSoundFile('boop');
-        }
+        }/* else if (this.currentSoundEffect == 'boopboop') {
+            this.playSoundFile('boop', 1.5);
+        }*/
     }
 
     playTone(length, overrideLength) {
@@ -223,8 +272,9 @@ export default class Original2 extends LightningElement {
         const envelope = this.audioContext.createGain()
         const decayRate = 1.5 // seconds
 
-        //oscillator.frequency.value = Math.random() * 450 + 200;
-        oscillator.frequency.value = this.getRandomValueFrom(this.tones);
+        //oscillator.frequency.value = Math.random() * 450 + 200;   // randomizing within a range
+        oscillator.frequency.value = this.getRandomValueFrom(this.tones) * 1.5; // the 1.5 is just for flavour
+        //oscillator.frequency.value = 425 - this.speeds[this.speedIndex].rate / 4; // attempt at having a descending tone that gets lower as the speed decreases
 
         oscillator.type = 'sine'
         envelope.gain.value = 1
