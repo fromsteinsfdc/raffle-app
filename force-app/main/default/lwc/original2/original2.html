@@ -1,31 +1,56 @@
 <template>
-
-    <!-- Load audio files (invisible) -->
-    <template for:each={soundStaticResources} for:item="sound" for:index="index">
-        <audio src={sound.src} controller data-index={index} key={sound.name} data-name={sound.name}></audio>
+    <template if:true={isLoading}>
+        <lightning-spinner></lightning-spinner>
     </template>
+    <div class="pageContainer slds-grid--frame">
 
-    <!-- Buttons & Options -->
-    <div class="slds-grid slds-grid_align-end slds-grid_vertical-align-end">
-        <div class="slds-col">
-            <lightning-combobox label="Select Sound Effect" options={soundEffectOptions} value={currentSoundEffect}
-            onchange={handleSoundEffectChange} class="slds-p-around_none slds-m-around_none"></lightning-combobox>
+        <lightning-button-icon icon-name="utility:rows" onclick={activateSidePanel} class="slds-p-around_large menuButton"></lightning-button-icon>
+
+        <!-- Load audio files (invisible) -->
+        <template for:each={soundStaticResources} for:item="sound" for:index="index">
+            <audio src={sound.src} controller data-index={index} key={sound.name} data-name={sound.name}></audio>
+        </template>
+
+        <!-- Buttons & Options
+        <lightning-combobox label="Select Sound Effect" options={soundEffects}
+        value={currentSoundEffect} onchange={handleSoundEffectChange}
+        class="slds-p-around_none slds-m-around_none"></lightning-combobox>
+        -->
+
+        <div class="sidePanel">
+            <div class="buttonsContainer">
+                <lightning-button label="SPIN! THAT! WHEEL!" onclick={handleSpinClick} variant="inverse"></lightning-button>
+
+
+                <div class="slds-grid">
+                    <div class="slds-col">
+                        <lightning-combobox label="Select Sound Effect" options={soundEffects}
+                            value={currentSoundEffect} onchange={handleSoundEffectChange}
+                            class="slds-p-around_none slds-m-around_none"></lightning-combobox>
+                    </div>
+                    <!--
+                    <div
+                        class="slds-col slds-size_1-of-1 slds-medium-size_1-of-4 slds-large-size_1-of-6 slds-p-horizontal_small">
+                        <lightning-button label="Start/stop spin" onclick={handleSpinClick}></lightning-button>
+                    </div>
+                    -->
+                </div>
+
+            </div>
         </div>
-        <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-4 slds-large-size_1-of-6 slds-p-horizontal_small">
-            <lightning-button label="Start/stop spin" onclick={handleSpinClick}></lightning-button>            
+
+        <!-- Names -->
+        <div class="namesContainer">
+            <template for:each={nameSlots} for:item="name">
+                <div key={name} class="nameSlot" data-index={name.index}>
+                    <span class="nameText slds-align_absolute-center slds-p-around_xx-small slds-truncate">
+                        {name.label}
+                    </span>
+                </div>
+            </template>
         </div>
-        <!--<div class="smashButton">Spin!</div>-->
+
+        <div class="countdown"></div>
     </div>
 
-    <!-- Names -->
-    <template for:each={nameSlots} for:item="name">
-        <div key={name} class="nameSlot" data-index={name.index}>
-            <span class="nameText slds-align_absolute-center slds-p-around_xx-small">
-                {name.label}
-            </span>
-        </div>
-    </template>
-
-    
-    <div class="countdown"></div>
 </template>

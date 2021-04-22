@@ -1,5 +1,11 @@
-body, body * {
-    overflow: hidden;
+* {
+    /*border: 1px dotted green;*/
+    /*
+    overflow: hidden !important;
+    position: relative;
+    height: 100%;
+    width: 100%;
+    */
 }
 
 [data-index="0"], [data-index="10"] {
@@ -42,22 +48,16 @@ body, body * {
     color: black;
 }
 
-.smashButton {
-    position: relative;
-    width: 15vw;
-    height: 10vh;
-    background-color: lightcyan;
-    border: 1px solid black;
-    border-radius: 5%;
-}
-
-lightning-combobox {
+lightning-combobox * {
+    background-color: black;
+    /*
     max-width: 20vw;
     display: inline;
+    */
 }
 
 .countdown {
-    position: absolute;
+    position: fixed;
     top: 50%;
     left: 50%;
     transform: translateX(-50%) translateY(-50%) ;
@@ -69,12 +69,63 @@ lightning-combobox {
     transition: opacity, font-size;*/
 }
 
-.test2 {
-    color: green;
-}
-
 .fade{
     transition-property: opacity, font-size;
     opacity: 0;
     font-size: 20vw;
 }
+
+.buttonsContainer {
+    
+    position: relative;
+    top: 10%;
+    /*z-index: 100000;*/
+}
+
+.namesContainer {
+    position: relative;
+    top: 10vh;
+    overflow: hidden !important;
+    /*border: 5px solid purple;*/
+}
+
+.pageContainer {
+    position: fixed;
+    top: 0;
+    left: 0;
+    overflow: hidden !important;
+    /*border: 10px solid black;*/
+}
+
+.sidePanel {
+    position: absolute;
+    border: 2px solid black;
+    background-color: midnightblue;
+    color: white;
+    height: 100vh;
+    top: 0;
+    width: 25vw;
+    left: -25vw;
+    transition: left .75s;
+    z-index: 9998;
+}
+
+.sidePanel.active {
+    left: 0vw;
+}
+
+.menuButton {
+    position: absolute;
+    z-index: 9999;
+}
+
+/*
+.smashButton {
+    position: relative;
+    width: 15vw;
+    height: 10vh;
+    background-color: lightcyan;
+    border: 1px solid black;
+    border-radius: 5%;
+}
+*/

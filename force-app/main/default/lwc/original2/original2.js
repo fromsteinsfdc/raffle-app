@@ -1,7 +1,8 @@
-import { LightningElement, api, track } from 'lwc';
+import { LightningElement, api, track, wire } from 'lwc';
 import beep1 from '@salesforce/resourceUrl/beep1';
 import boop2 from '@salesforce/resourceUrl/boop2';
 import snap2 from '@salesforce/resourceUrl/snap2';
+import getDrawingParticipants from '@salesforce/apex/RaffleAppController.getDrawingParticipants';
 /*
 import beep2 from '@salesforce/resourceUrl/beep2';
 import boop1 from '@salesforce/resourceUrl/boop1';
@@ -15,6 +16,8 @@ const NAMES_CSV = 'Maximilian Thompson,Alina Reed,Sienna Carroll,Sawyer Farrell,
 const DEFAULT_NUM_SLOTS = 11;
 
 export default class Original2 extends LightningElement {
+
+    @api drawingId = 'aAr4x000000Gr68CAC';
 
     @api numSlots = DEFAULT_NUM_SLOTS;
     @track nameSlots = [];
@@ -32,12 +35,12 @@ export default class Original2 extends LightningElement {
     boopIndex = 0;  // used to manage the alternating of beep and boop sounds in the beepboop sound effect
 
     soundEffects = [
-        { label: 'Beep-Boop', name: 'beepboop' },
-        { label: 'Just Beeps', name: 'beepbeep' },
+        { label: 'Beep-Boop', value: 'beepboop' },
+        { label: 'Just Beeps', value: 'beepbeep' },
         //{ label: 'Just Boops', name: 'boopboop' },
-        { label: 'Tones (random)', name: 'tones' },
-        { label: 'Snap', name: 'snap' },
-        { label: 'No sound', name: 'nosound' }
+        { label: 'Tones (random)', value: 'tones' },
+        { label: 'Snap', value: 'snap' },
+        { label: 'No sound', value: 'nosound' }
     ];
     currentSoundEffect;
     
@@ -51,7 +54,7 @@ export default class Original2 extends LightningElement {
 
     @track speeds = [
         [20, 500],
-        [30, 500],
+        [30, 575],
         [40, 500],
         [50, 500],
         [60, 500],
@@ -65,8 +68,10 @@ export default class Original2 extends LightningElement {
         [1000, 2000]
     ];
     speedIndex = 0;
+    totalNumberOfSpins = 0;
 
     rendered;
+    isLoading;
 
     /* GETTERS */
     get maxFromCenter() {
@@ -96,82 +101,85 @@ export default class Original2 extends LightningElement {
 
     /* CALLBACKS */
     connectedCallback() {
+        console.log('connectedCallback!');
         this.audioContext = new AudioContext();
 
         // Give our speeds some labels
         let totalDuration = 0;
         this.speeds = this.speeds.map(pair => {
-            totalDuration += pair[1];
-            return {
+            let speed = {
                 rate: pair[0],
                 duration: pair[1]                
             }
+            totalDuration += speed.duration;
+            this.totalNumberOfSpins += Math.ceil(speed.duration / speed.rate);
+            return speed;
         });
         console.log('totalDuration = '+ totalDuration/1000);
+        console.log('totalNumberOfSpins = '+ this.totalNumberOfSpins);
 
         // Generate randomized sequence of names from input
-        this.names = this.randomizeNames(this.defaultNames.split(','));
-        for (let i = 0; i < this.numSlots; i++) {
-            this.nameSlots.push({
-                index: i,
-                label: this.names[i]
-            });
-            this.nameIndex++;
-        }
+        //this.names = this.randomizeNames(this.defaultNames.split(','));
+        //this.names = this.names.sort(() => Math.random() - 0.5);
 
         // Default to first sound effect if none pre-selected
         if (!this.currentSoundEffect && this.soundEffects[0])
-            this.currentSoundEffect = this.soundEffects[0].name;
+            this.currentSoundEffect = this.soundEffects[0].value;
+        console.log(JSON.stringify(this.soundEffects));
     }
 
     renderedCallback() {
         if (this.rendered) return;
         this.rendered = true;
 
+        console.log('renderedCallback!');
         for (let soundFile of this.soundFiles) {
             //console.log(soundFile.dataset.name + ' duration = ' + soundFile.duration);
         }
     }
 
-    countdown(startNum, currentNum = 0) {
-        let countdownDiv = this.template.querySelector('.countdown');
-        if (!countdownDiv) {
-            console.log('error: div with class countdown not found');
-            return;
-        }
+    /* WIRE METHODS */
+    @wire(getDrawingParticipants, {drawingId: '$drawingId'})
+    handleGetDrawingParticipants({error, data}) {
+        this.isLoading = true;
+        console.log('wire method');
+        if (data) {
+            this.names = [];
+            let totalTickets = 0;
+            for (let participant of data) {
 
-        if (currentNum < startNum) {
-            countdownDiv.classList.remove('slds-hide');
-            countdownDiv.innerText = (startNum - currentNum);
-            countdownDiv.animate([
-                { // from
-                    opacity: 1,
-                    fontSize: '50vw'
-                },
-                { // to
-                    opacity: .5,
-                    fontSize: 0
+                //console.log(JSON.stringify(participant), participant.Number_of_Tickets__c);
+                for (let i=0; i<participant.Number_of_Tickets__c; i++) {
+                    this.names.push(participant.Name);
                 }
-            ], this.countdownSpeed);
-            setTimeout(() => this.countdown(startNum, currentNum + 1), this.countdownSpeed);
-        } else {
-            countdownDiv.classList.add('slds-hide');
-            this.doSpin = true;
-            this.startSpin();
-            console.log('countdown finished');
+                totalTickets += participant.Number_of_Tickets__c;
+            }
+            console.log('totalTickets = '+ totalTickets);
+            this.names = this.randomizeNames(this.names);
+            this.initializeNames();
+            this.isLoading = false;
+        }
+        if (error) {
+            console.log('Error getting participants: '+ JSON.stringify(error));
         }
     }
 
     /* EVENT HANDLERS */
     handleSoundEffectChange(event) {
         this.currentSoundEffect = event.detail.value;
+        console.log('sound effect = '+ this.currentSoundEffect);
     }
 
     handleSpinClick() {
         this.doSpin = !this.doSpin;
         if (this.doSpin) {
+            this.template.querySelector('.sidePanel').classList.remove('active');
             this.countdown(this.countdownFrom);
         }
+    }
+
+    activateSidePanel() {
+        this.template.querySelector('.sidePanel').classList.toggle('active');
     }
 
     /* WHEEL SPINNING FUNCTIONS */
@@ -179,6 +187,17 @@ export default class Original2 extends LightningElement {
         requestAnimationFrame(timestamp => {
             this.advanceNames(timestamp);
         });
+    }
+
+    initializeNames() {
+        this.nameIndex = 0;
+        for (let i = 0; i < this.numSlots; i++) {
+            this.nameSlots.push({
+                index: i,
+                label: this.names[i]
+            });
+            this.nameIndex++;
+        }
     }
 
     advanceNames(timestamp, prevTimestamp, currentSpeedStart) {
@@ -247,9 +266,45 @@ export default class Original2 extends LightningElement {
         }, flashInterval)
     }
 
+    // Animates the countdown before the raffle spinning starts
+    countdown(startNum, currentNum = 0) {
+        let countdownDiv = this.template.querySelector('.countdown');
+        if (!countdownDiv) {
+            console.log('error: div with class countdown not found');
+            return;
+        }
+
+        if (currentNum < startNum) {
+            countdownDiv.classList.remove('slds-hide');
+            countdownDiv.innerText = (startNum - currentNum);
+            countdownDiv.animate([
+                { // from
+                    opacity: 1,
+                    fontSize: '50vw'
+                },
+                { // to
+                    opacity: .5,
+                    fontSize: 0
+                }
+            ], this.countdownSpeed);
+            setTimeout(() => this.countdown(startNum, currentNum + 1), this.countdownSpeed);
+        } else {
+            countdownDiv.classList.add('slds-hide');
+            this.doSpin = true;
+            this.startSpin();
+            console.log('countdown finished');
+        }
+    }
+
     /* AUDIO FUNCTIONS */
     playSound(length) {
         if (this.currentSoundEffect == 'beepboop') {
+            /*
+            if (this.boopIndex === 0) {
+                this.playSoundFile('boop', 1.5);
+            } else {
+                this.playSoundFile('beep');
+            }*/
             this.playSoundFile(this.boopIndex ? 'beep' : 'boop');
             this.boopIndex = this.boopIndex ? 0 : 1;
         } else if (this.currentSoundEffect == 'tones') {
@@ -279,7 +334,6 @@ export default class Original2 extends LightningElement {
         oscillator.type = 'sine'
         envelope.gain.value = 1
         //console.log(oscillator.frequency.value.toFixed(3), oscillator.type, length);
-
 
         oscillator.connect(envelope)
         envelope.connect(this.audioContext.destination)
@@ -311,12 +365,7 @@ export default class Original2 extends LightningElement {
 
     /* HELPER FUNCTIONS */
     randomizeNames(names) {
-        let randomNames = [];
-        while (names.length) {
-            let ran = parseInt(Math.random() * names.length, 10);
-            randomNames.push(names.splice(ran, 1));
-        }
-        return randomNames;
+        return names.sort(() => Math.random() - 0.5);
     }
 
     getRandomValueFrom(fromArray) {
